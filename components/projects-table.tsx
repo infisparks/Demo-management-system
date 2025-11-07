@@ -24,6 +24,20 @@ interface Project {
   AmountHistory: Record<string, { amount: number; date: string; note: string }>
 }
 
+
+// ⭐ New Helper Function to format the date
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-'
+  try {
+    // Assuming dateString is in "YYYY-MM-DD" format
+    const [year, month, day] = dateString.split('-')
+    return `${day}-${month}-${year}` // Format to DD-MM-YYYY
+  } catch (e) {
+    console.error("Error formatting date:", e)
+    return dateString // Return original string on error
+  }
+}
+
 export default function ProjectsTable() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null)
@@ -106,8 +120,9 @@ export default function ProjectsTable() {
                         <span className="text-xs text-slate-600 whitespace-nowrap">{getPercentageReceived(project)}% of 50,000</span>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{project.startDate}</td>
-                    <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{project.endDate}</td>
+                    {/* Before: <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{project.startDate}</td> */}
+                    <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{formatDate(project.startDate)}</td>
+                    <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{formatDate(project.endDate)}</td>
                     <td className="py-4 px-4 text-sm whitespace-nowrap">
                       <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">
                         {project.maintenance?.type}: Rs {project.maintenance?.amount.toLocaleString()}

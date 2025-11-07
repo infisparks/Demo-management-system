@@ -50,10 +50,10 @@ export default function ActionMenu({
       </Button>
       
       {/* Delete: Destructive (Red) for critical action */}
-      <Button variant="destructive" size="sm" className="gap-2" onClick={() => onDelete(project.id)}>
+      {/* <Button variant="destructive" size="sm" className="gap-2" onClick={() => onDelete(project.id)}>
         <Trash2 className="w-4 h-4" />
         Delete
-      </Button>
+      </Button> */}
     </div>
   )
 }

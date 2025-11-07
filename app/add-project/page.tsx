@@ -45,6 +45,12 @@ export default function AddProjectPage() {
       setError("Amount Paid must be greater than 0")
       return false
     }
+    // ⬇️ ADDED: Validation for Amount Paid maximum
+    if (formData.amountPaid > 50000) {
+      setError("Amount Paid cannot exceed 50,000 Rs")
+      return false
+    }
+    // ⬆️ ADDED
     if (!formData.startDate) {
       setError("Start Date is required")
       return false
@@ -154,7 +160,12 @@ export default function AddProjectPage() {
                   type="number"
                   placeholder="Enter amount"
                   value={formData.amountPaid === 0 ? "" : formData.amountPaid}
-                  onChange={(e) => setFormData({ ...formData, amountPaid: Number.parseFloat(e.target.value) || 0 })}
+                  // ⬇️ UPDATED: Add logic to cap the amount at 50000
+                  onChange={(e) => {
+                    const value = Number.parseFloat(e.target.value) || 0;
+                    setFormData({ ...formData, amountPaid: value > 50000 ? 50000 : value });
+                  }}
+                  // ⬆️ UPDATED
                   required
                   className="flex-1"
                 />
