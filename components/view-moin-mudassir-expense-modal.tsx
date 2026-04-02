@@ -13,7 +13,7 @@ interface Expense {
   createdAt: string
 }
 
-export default function ViewExpenseModal({
+export default function ViewMoinMudassirExpenseModal({
   expense,
   onClose,
 }: {
@@ -24,7 +24,7 @@ export default function ViewExpenseModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Expense Details</CardTitle>
+          <CardTitle>Account Expense Details</CardTitle>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
             <X className="w-6 h-6" />
           </button>
@@ -38,7 +38,7 @@ export default function ViewExpenseModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-slate-600">Amount</p>
-              <p className="text-xl font-bold text-orange-600 mt-1">Rs {expense.amount.toLocaleString()}</p>
+              <p className="text-xl font-bold text-blue-600 mt-1">Rs {expense.amount.toLocaleString()}</p>
             </div>
             <div>
               <p className="text-sm text-slate-600">Date</p>
@@ -47,7 +47,7 @@ export default function ViewExpenseModal({
           </div>
 
           <div>
-            <p className="text-sm text-slate-600">Paid By</p>
+            <p className="text-sm text-slate-600">Expensed By</p>
             <p className="text-lg font-semibold text-slate-900 mt-1">{expense.paidBy}</p>
           </div>
 

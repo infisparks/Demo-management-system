@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Plus, TrendingUp, LogOut, ChevronLeft } from "lucide-react"
+import { LayoutDashboard, Plus, TrendingUp, LogOut, ChevronLeft, Wallet, Users } from "lucide-react"
 import { useSidebar } from "./sidebar-context"
 
 export default function Sidebar() {
@@ -15,7 +15,8 @@ export default function Sidebar() {
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/add-project", label: "Add Project", icon: Plus },
-    { href: "/expenses", label: "Expense", icon: TrendingUp },
+    { href: "/expenses", label: "Company Expense", icon: TrendingUp },
+    { href: "/moin-mudassir-accounts", label: "Moin & Mudassir Accounts", icon: Users },
   ]
 
   const handleLogout = async () => {
@@ -23,7 +24,7 @@ export default function Sidebar() {
   }
 
   // ✅ For desktop use isToggled; for mobile always full width when open
-  const sidebarWidthClass = isMobileOpen ? "w-64" : isToggled ? "w-64" : "w-20"
+  const sidebarWidthClass = isMobileOpen ? "w-72" : isToggled ? "w-72" : "w-20"
   
   const positionClasses = `
     fixed top-0 left-0 h-screen z-50 transition-transform duration-300 ease-in-out
@@ -46,8 +47,8 @@ export default function Sidebar() {
         <div className={`mb-8 flex ${isToggled || isMobileOpen ? 'justify-between' : 'justify-center'} items-center relative`}>
           {/* Title */}
           <div className={`transition-all duration-200 ease-out ${(isToggled || isMobileOpen) ? 'block' : 'hidden md:block'}`}>
-            <h1 className="text-2xl font-bold text-blue-400">Demo</h1>
-            <p className="text-xs text-slate-400 mt-1">Management System</p>
+            <h1 className="text-2xl font-bold text-blue-400">Infisparks</h1>
+            <p className="text-xs text-slate-400 mt-1">Accounts Management System</p>
           </div>
           
           {/* Desktop Collapse Button */}
@@ -82,7 +83,7 @@ export default function Sidebar() {
                   title={!(isToggled || isMobileOpen) ? item.label : undefined}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
-                  <span className={`font-medium whitespace-nowrap ${(isToggled || isMobileOpen) ? 'block' : 'hidden'}`}>
+                  <span className={`font-medium ${(isToggled || isMobileOpen) ? 'block' : 'hidden'} truncate`}>
                     {item.label}
                   </span>
                 </div>

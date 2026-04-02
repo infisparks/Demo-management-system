@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 interface Project {
   id: string
   projectName: string
+  totalAmount: number
   AmountHistory: Record<string, { amount: number; date: string; note: string }>
 }
 
@@ -70,7 +71,8 @@ export default function PaymentHistoryModal({
 
   const payments = project.AmountHistory ? Object.entries(project.AmountHistory) : []
   const totalAmount = getTotalAmount()
-  const percentage = ((totalAmount / 50000) * 100).toFixed(1)
+  const target = project.totalAmount && project.totalAmount > 0 ? project.totalAmount : 50000
+  const percentage = ((totalAmount / target) * 100).toFixed(1)
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -92,7 +94,7 @@ export default function PaymentHistoryModal({
               </div>
               <div>
                 <p className="text-sm text-slate-600">Project Total</p>
-                <p className="text-xl font-bold text-slate-900">Rs 50,000</p>
+                <p className="text-xl font-bold text-slate-900">Rs {(project.totalAmount && project.totalAmount > 0 ? project.totalAmount : 50000).toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-sm text-slate-600">Progress</p>

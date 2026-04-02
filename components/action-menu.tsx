@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Edit, Plus, Trash2 } from "lucide-react"
+import { Edit, Plus, Trash2, Calendar } from "lucide-react"
 
 interface Project {
   id: string
   projectName: string
+  totalAmount: number
   startDate: string
   endDate: string
+  reminderDate: string
   maintenance: { type: string; amount: number }
   certificateURL: string
   userId: string
@@ -20,13 +22,15 @@ export default function ActionMenu({
   project,
   onDelete,
   onPaymentClick,
+  onReminderClick,
 }: {
   project: Project
   onDelete: (id: string) => void
   onPaymentClick: () => void
+  onReminderClick: () => void
 }) {
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-wrap gap-3">
       {/* Edit Details: Amber/Yellow for modification */}
       <Link href={`/edit-project/${project.id}`}>
         <Button 
@@ -39,6 +43,17 @@ export default function ActionMenu({
         </Button>
       </Link>
       
+      {/* Update Reminder Date: Blue for planning/reminders */}
+      <Button 
+        variant="outline"
+        size="sm" 
+        className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" 
+        onClick={onReminderClick}
+      >
+        <Calendar className="w-4 h-4" />
+        Update Reminder
+      </Button>
+      
       {/* Update Payment: Green for adding/success */}
       <Button 
         size="sm" 
@@ -50,10 +65,10 @@ export default function ActionMenu({
       </Button>
       
       {/* Delete: Destructive (Red) for critical action */}
-      {/* <Button variant="destructive" size="sm" className="gap-2" onClick={() => onDelete(project.id)}>
+      <Button variant="destructive" size="sm" className="gap-2" onClick={() => onDelete(project.id)}>
         <Trash2 className="w-4 h-4" />
         Delete
-      </Button> */}
+      </Button>
     </div>
   )
 }

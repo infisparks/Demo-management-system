@@ -9,14 +9,17 @@ import { Eye, Plus } from "lucide-react"
 import Link from "next/link"
 import CertificateModal from "./certificate-modal"
 import PaymentHistoryModal from "./payment-history-modal"
+import ReminderDateModal from "./reminder-date-modal"
 import ActionMenu from "./action-menu"
 import React from "react"
 
 interface Project {
   id: string
   projectName: string
+  totalAmount: number
   startDate: string
   endDate: string
+  reminderDate: string
   maintenance: { type: string; amount: number }
   certificateURL: string
   userId: string
@@ -42,6 +45,7 @@ export default function ProjectsTable() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [selectedProjectForReminder, setSelectedProjectForReminder] = useState<Project | null>(null)
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   useEffect(() => {
@@ -65,8 +69,8 @@ export default function ProjectsTable() {
 
   const getPercentageReceived = (project: Project) => {
     const total = getTotalAmountReceived(project)
-    // Assuming a fixed total project value of 50000 for percentage calculation
-    const percentage = (total / 50000) * 100
+    const target = project.totalAmount && project.totalAmount > 0 ? project.totalAmount : 50000
+    const percentage = (total / target) * 100
     return percentage > 100 ? 100 : percentage.toFixed(1)
   }
 
@@ -92,9 +96,11 @@ export default function ProjectsTable() {
               <tr className="bg-slate-50">
                 <th className="w-16 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Sr.No</th>
                 <th className="w-40 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Project Name</th>
-                <th className="w-48 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Amount Received</th>
+                <th className="w-32 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Total Amount</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Amount Received</th>
                 <th className="w-32 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Start Date</th>
                 <th className="w-32 text-left py-3 px-4 font-semibold text-slate-700 text-sm">End Date</th>
+                <th className="w-32 text-left py-3 px-4 font-semibold text-blue-700 text-sm">Reminder Date</th>
                 <th className="w-32 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Maintenance</th>
                 <th className="w-24 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Certificate</th>
                 <th className="w-24 text-left py-3 px-4 font-semibold text-slate-700 text-sm">Action</th>
@@ -106,6 +112,9 @@ export default function ProjectsTable() {
                   <tr className="hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-4 text-slate-900 text-sm">{index + 1}</td>
                     <td className="py-4 px-4 text-slate-900 font-medium text-sm truncate">{project.projectName}</td>
+                    <td className="py-4 px-4 text-slate-900 font-semibold text-sm">
+                      Rs {(project.totalAmount && project.totalAmount > 0 ? project.totalAmount : 50000).toLocaleString()}
+                    </td>
                     <td className="py-4 px-4">
                       <div className="flex flex-col gap-1 w-full">
                         <span className="font-semibold text-slate-900 text-sm whitespace-nowrap">
@@ -117,12 +126,15 @@ export default function ProjectsTable() {
                             style={{ width: `${getPercentageReceived(project)}%` }}
                           />
                         </div>
-                        <span className="text-xs text-slate-600 whitespace-nowrap">{getPercentageReceived(project)}% of 50,000</span>
+                        <span className="text-xs text-slate-600 whitespace-nowrap">
+                          {getPercentageReceived(project)}% of {(project.totalAmount && project.totalAmount > 0 ? project.totalAmount : 50000).toLocaleString()}
+                        </span>
                       </div>
                     </td>
                     {/* Before: <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{project.startDate}</td> */}
                     <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{formatDate(project.startDate)}</td>
                     <td className="py-4 px-4 text-slate-600 text-sm whitespace-nowrap">{formatDate(project.endDate)}</td>
+                    <td className="py-4 px-4 text-blue-600 font-semibold text-sm whitespace-nowrap">{formatDate(project.reminderDate)}</td>
                     <td className="py-4 px-4 text-sm whitespace-nowrap">
                       <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">
                         {project.maintenance?.type}: Rs {project.maintenance?.amount.toLocaleString()}
@@ -153,11 +165,12 @@ export default function ProjectsTable() {
                   {expandedRow === project.id && (
                     <tr className="bg-slate-50">
                       {/* 🌟 Updated to ensure perfect centering! 🌟 */}
-                      <td colSpan={8} className="py-4 px-4 border-t border-slate-200 **flex justify-center items-center**">
+                      <td colSpan={10} className="py-4 px-4 border-t border-slate-200 **flex justify-center items-center**">
                         <ActionMenu
                           project={project}
                           onDelete={handleDelete}
                           onPaymentClick={() => setSelectedProject(project)}
+                          onReminderClick={() => setSelectedProjectForReminder(project)}
                         />
                       </td>
                     </tr>
@@ -185,6 +198,13 @@ export default function ProjectsTable() {
       )}
 
       {selectedProject && <PaymentHistoryModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
+
+      {selectedProjectForReminder && (
+        <ReminderDateModal
+          project={selectedProjectForReminder}
+          onClose={() => setSelectedProjectForReminder(null)}
+        />
+      )}
     </Card>
   )
 }

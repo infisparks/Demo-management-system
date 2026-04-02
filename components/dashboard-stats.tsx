@@ -4,13 +4,14 @@ import { useEffect, useState } from "react"
 import { ref, onValue } from "firebase/database"
 import { db } from "@/lib/firebase"
 import { Card, CardContent } from "@/components/ui/card"
-import { DollarSign, Briefcase, TrendingDown, Wallet } from "lucide-react"
+import { DollarSign, Briefcase, TrendingDown, Wallet, Users } from "lucide-react"
 
 export default function DashboardStats() {
   const [stats, setStats] = useState({
     bankAmount: 0,
     totalProjects: 0,
     totalExpense: 0,
+    totalPersonalExpense: 0,
     revenue: 0,
   })
 
@@ -59,7 +60,27 @@ export default function DashboardStats() {
         ...prev,
         totalExpense,
         // Update bank amount based on new expense and existing revenue
-        bankAmount: prev.revenue - totalExpense,
+        bankAmount: prev.revenue - totalExpense - prev.totalPersonalExpense,
+      }))
+    })
+
+    // Fetch personal Moin & Mudassir expenses
+    const personalExpensesRef = ref(db, "moin-mudassir-expense")
+    const unsubscribePersonal = onValue(personalExpensesRef, (snapshot) => {
+      let totalPersonalExpense = 0
+
+      if (snapshot.exists()) {
+        const personal = snapshot.val()
+        Object.values(personal as any).forEach((expense: any) => {
+          totalPersonalExpense += expense.amount || 0
+        })
+      }
+
+      setStats((prev) => ({
+        ...prev,
+        totalPersonalExpense,
+        // Update bank amount based on both company and personal expenses
+        bankAmount: prev.revenue - prev.totalExpense - totalPersonalExpense,
       }))
     })
 
@@ -67,6 +88,7 @@ export default function DashboardStats() {
     return () => {
         unsubscribeProjects()
         unsubscribeExpenses()
+        unsubscribePersonal()
     }
   }, []) // Removed dependency array logic since two separate listeners update state.
 
@@ -86,14 +108,21 @@ export default function DashboardStats() {
       lightBg: "from-green-50 to-green-100",
     },
     {
-      title: "Total Expense",
+      title: "Total Company Expense",
       value: `Rs ${stats.totalExpense.toLocaleString()}`,
       icon: TrendingDown,
       color: "from-red-500 to-red-600",
       lightBg: "from-red-50 to-red-100",
     },
     {
-      title: "Revenue",
+      title: "Total Moin & Mudassir Expense",
+      value: `Rs ${stats.totalPersonalExpense.toLocaleString()}`,
+      icon: Users,
+      color: "from-amber-500 to-amber-600",
+      lightBg: "from-amber-50 to-amber-100",
+    },
+    {
+      title: "Total Revenue",
       value: `Rs ${stats.revenue.toLocaleString()}`,
       icon: DollarSign,
       color: "from-purple-500 to-purple-600",
@@ -103,7 +132,7 @@ export default function DashboardStats() {
 
   return (
     // Updated grid for better responsiveness: 1 column on small, 2 on medium, 4 on large
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
       {statCards.map((stat, index) => {
         const Icon = stat.icon
         return (

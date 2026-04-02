@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { ref, set } from "firebase/database"
 import { db, storage } from "@/lib/firebase"
@@ -11,12 +10,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function AddExpenseModal({ 
-  onClose, 
+export default function AddMoinMudassirExpenseModal({ 
+  onClose,
   expense 
 }: { 
-  onClose: () => void, 
-  expense?: any 
+  onClose: () => void,
+  expense?: any
 }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -24,7 +23,7 @@ export default function AddExpenseModal({
     name: expense?.name || "",
     amount: expense?.amount || 0,
     date: expense?.date || new Date().toISOString().split("T")[0],
-    paidBy: expense?.paidBy || "",
+    expensedBy: expense?.paidBy || "Moin",
   })
   const [billFile, setBillFile] = useState<File | null>(null)
 
@@ -35,11 +34,11 @@ export default function AddExpenseModal({
 
     try {
       const expenseId = expense?.id || Date.now().toString()
-      const expenseRef = ref(db, `expenses/${expenseId}`)
+      const expenseRef = ref(db, `moin-mudassir-expense/${expenseId}`)
 
       let billURL = expense?.billURL || ""
       if (billFile) {
-        const fileRef = storageRef(storage, `expenses/${expenseId}/${billFile.name}`)
+        const fileRef = storageRef(storage, `moin-mudassir-expense/${expenseId}/${billFile.name}`)
         await uploadBytes(fileRef, billFile)
         billURL = await getDownloadURL(fileRef)
       }
@@ -48,7 +47,7 @@ export default function AddExpenseModal({
         name: formData.name,
         amount: Number.parseFloat(formData.amount.toString()),
         date: formData.date,
-        paidBy: formData.paidBy,
+        paidBy: formData.expensedBy, // Storing as paidBy for compatibility with table but label is Expensed By
         billURL,
         createdAt: expense?.createdAt || new Date().toISOString(),
       })
@@ -65,7 +64,7 @@ export default function AddExpenseModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Add Expense</CardTitle>
+          <CardTitle>Add Account Expense</CardTitle>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
             <X className="w-6 h-6" />
           </button>
@@ -88,8 +87,8 @@ export default function AddExpenseModal({
               <Input
                 type="number"
                 placeholder="Enter amount"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: Number.parseFloat(e.target.value) })}
+                value={formData.amount === 0 ? "" : formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: Number.parseFloat(e.target.value) || 0 })}
                 required
               />
             </div>
@@ -105,14 +104,16 @@ export default function AddExpenseModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Paid By</label>
-              <Input
-                type="text"
-                placeholder="Enter name of person who paid"
-                value={formData.paidBy}
-                onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
+              <label className="block text-sm font-medium mb-2">Expensed By</label>
+              <select
+                value={formData.expensedBy}
+                onChange={(e) => setFormData({ ...formData, expensedBy: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 required
-              />
+              >
+                <option value="Moin">Moin</option>
+                <option value="Mudassir">Mudassir</option>
+              </select>
             </div>
 
             <div>

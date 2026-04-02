@@ -18,9 +18,11 @@ export default function AddProjectPage() {
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
     projectName: "",
+    totalAmount: 0,
     amountPaid: 0,
     startDate: "",
     endDate: "",
+    reminderDate: "",
     maintenanceType: "Monthly",
     maintenanceAmount: 0,
     certificate: null as File | null,
@@ -45,21 +47,11 @@ export default function AddProjectPage() {
       setError("Amount Paid must be greater than 0")
       return false
     }
-    // ⬇️ ADDED: Validation for Amount Paid maximum
-    if (formData.amountPaid > 50000) {
-      setError("Amount Paid cannot exceed 50,000 Rs")
+    if (formData.totalAmount <= 0) {
+      setError("Total Amount must be greater than 0")
       return false
     }
-    // ⬆️ ADDED
-    if (!formData.startDate) {
-      setError("Start Date is required")
-      return false
-    }
-    if (!formData.endDate) {
-      setError("End Date is required")
-      return false
-    }
-    if (formData.maintenanceAmount <= 0) {
+    if (formData.maintenanceType !== "None" && formData.maintenanceAmount <= 0) {
       setError("Maintenance Amount must be greater than 0")
       return false
     }
@@ -96,8 +88,10 @@ export default function AddProjectPage() {
       const projectRef = ref(db, `Projects/${projectId}`)
       await set(projectRef, {
         projectName: formData.projectName,
+        totalAmount: formData.totalAmount,
         startDate: formData.startDate,
         endDate: formData.endDate,
+        reminderDate: formData.reminderDate,
         maintenance: {
           type: formData.maintenanceType,
           amount: formData.maintenanceAmount,
@@ -150,41 +144,43 @@ export default function AddProjectPage() {
               />
             </div>
 
+            {/* Total Amount */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Total Amount <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="number"
+                placeholder="Enter total project amount"
+                value={formData.totalAmount === 0 ? "" : formData.totalAmount}
+                onChange={(e) => setFormData({ ...formData, totalAmount: Number.parseFloat(e.target.value) || 0 })}
+                required
+              />
+            </div>
+
             {/* Amount Paid */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Amount Paid <span className="text-red-500">*</span>
               </label>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                <Input
-                  type="number"
-                  placeholder="Enter amount"
-                  value={formData.amountPaid === 0 ? "" : formData.amountPaid}
-                  // ⬇️ UPDATED: Add logic to cap the amount at 50000
-                  onChange={(e) => {
-                    const value = Number.parseFloat(e.target.value) || 0;
-                    setFormData({ ...formData, amountPaid: value > 50000 ? 50000 : value });
-                  }}
-                  // ⬆️ UPDATED
-                  required
-                  className="flex-1"
-                />
-                <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">/ 50,000 Rs</span>
-              </div>
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={formData.amountPaid === 0 ? "" : formData.amountPaid}
+                onChange={(e) => setFormData({ ...formData, amountPaid: Number.parseFloat(e.target.value) || 0 })}
+                required
+              />
             </div>
 
             {/* Start Date */}
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Start Date <span className="text-red-500">*</span>
-              </label>
+              <label className="block text-sm font-medium mb-2">Start Date</label>
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-slate-400 shrink-0" />
                 <Input
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  required
                   className="flex-1"
                 />
               </div>
@@ -192,19 +188,31 @@ export default function AddProjectPage() {
 
             {/* End Date */}
             <div>
-              <label className="block text-sm font-medium mb-2">
-                End Date <span className="text-red-500">*</span>
-              </label>
+              <label className="block text-sm font-medium mb-2">End Date</label>
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-slate-400 shrink-0" />
                 <Input
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  required
                   className="flex-1"
                 />
               </div>
+            </div>
+
+            {/* Reminder Date */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-blue-600 font-semibold">Expected Payment Date (Reminder)</label>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500 shrink-0" />
+                <Input
+                  type="date"
+                  value={formData.reminderDate}
+                  onChange={(e) => setFormData({ ...formData, reminderDate: e.target.value })}
+                  className="flex-1 border-blue-200 focus:ring-blue-500"
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">This will help you track when the next payment is expected from the client.</p>
             </div>
 
             {/* Maintenance */}
@@ -220,27 +228,30 @@ export default function AddProjectPage() {
                 >
                   <option value="Monthly">Monthly</option>
                   <option value="Annual">Annual</option>
+                  <option value="None">None</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Maintenance Amount (Rs) <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter amount"
-                  value={formData.maintenanceAmount === 0 ? "" : formData.maintenanceAmount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, maintenanceAmount: Number.parseFloat(e.target.value) || 0 })
-                  }
-                  required
-                />
-              </div>
+              {formData.maintenanceType !== "None" && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Maintenance Amount (Rs) <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="Enter amount"
+                    value={formData.maintenanceAmount === 0 ? "" : formData.maintenanceAmount}
+                    onChange={(e) =>
+                      setFormData({ ...formData, maintenanceAmount: Number.parseFloat(e.target.value) || 0 })
+                    }
+                    required
+                  />
+                </div>
+              )}
             </div>
 
             {/* Certificate Image */}
             <div>
-              <label className="block text-sm font-medium mb-2">Certificate Image (Max 750KB)</label>
+              <label className="block text-sm font-medium mb-2">Contract Image (Max 750KB)</label>
               <input
                 type="file"
                 accept="image/*"

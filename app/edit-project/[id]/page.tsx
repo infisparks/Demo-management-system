@@ -15,9 +15,11 @@ import Link from "next/link"
 
 interface Project {
   projectName: string
+  totalAmount: number
   startDate: string
   endDate: string
   maintenance: { type: string; amount: number }
+  reminderDate: string
   certificateURL?: string
 }
 
@@ -31,8 +33,10 @@ export default function EditProjectPage() {
   const [error, setError] = useState("")
   const [formData, setFormData] = useState<Project>({
     projectName: "",
+    totalAmount: 0,
     startDate: "",
     endDate: "",
+    reminderDate: "",
     maintenance: { type: "Monthly", amount: 0 },
   })
   const [certificate, setCertificate] = useState<File | null>(null)
@@ -47,8 +51,10 @@ export default function EditProjectPage() {
           const data = snapshot.val()
           setFormData({
             projectName: data.projectName,
+            totalAmount: data.totalAmount || 50000, // Default to 50k if old project
             startDate: data.startDate,
             endDate: data.endDate,
+            reminderDate: data.reminderDate || "",
             maintenance: data.maintenance,
             certificateURL: data.certificateURL,
           })
@@ -92,8 +98,10 @@ export default function EditProjectPage() {
       const projectRef = ref(db, `Projects/${projectId}`)
       await update(projectRef, {
         projectName: formData.projectName,
+        totalAmount: formData.totalAmount,
         startDate: formData.startDate,
         endDate: formData.endDate,
+        reminderDate: formData.reminderDate,
         maintenance: formData.maintenance,
         certificateURL,
       })
@@ -132,7 +140,6 @@ export default function EditProjectPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Project Name */}
             <div>
               <label className="block text-sm font-medium mb-2">Project Name</label>
               <Input
@@ -140,6 +147,18 @@ export default function EditProjectPage() {
                 placeholder="Enter project name"
                 value={formData.projectName}
                 onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
+                required
+              />
+            </div>
+
+            {/* Total Amount */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Total Amount</label>
+              <Input
+                type="number"
+                placeholder="Enter total project amount"
+                value={formData.totalAmount === 0 ? "" : formData.totalAmount}
+                onChange={(e) => setFormData({ ...formData, totalAmount: Number.parseFloat(e.target.value) || 0 })}
                 required
               />
             </div>
@@ -153,7 +172,6 @@ export default function EditProjectPage() {
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  required
                 />
               </div>
             </div>
@@ -167,7 +185,20 @@ export default function EditProjectPage() {
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  required
+                />
+              </div>
+            </div>
+
+            {/* Reminder Date */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-blue-600 font-semibold">Expected Payment Date (Reminder)</label>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500 mr-2 shrink-0" />
+                <Input
+                  type="date"
+                  value={formData.reminderDate}
+                  onChange={(e) => setFormData({ ...formData, reminderDate: e.target.value })}
+                  className="flex-1 border-blue-200 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -188,28 +219,31 @@ export default function EditProjectPage() {
                 >
                   <option value="Monthly">Monthly</option>
                   <option value="Annual">Annual</option>
+                  <option value="None">None</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Maintenance Amount (Rs)</label>
-                <Input
-                  type="number"
-                  placeholder="Enter amount"
-                  value={formData.maintenance.amount}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      maintenance: { ...formData.maintenance, amount: Number.parseFloat(e.target.value) },
-                    })
-                  }
-                  required
-                />
-              </div>
+              {formData.maintenance.type !== "None" && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Maintenance Amount (Rs)</label>
+                  <Input
+                    type="number"
+                    placeholder="Enter amount"
+                    value={formData.maintenance.amount}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        maintenance: { ...formData.maintenance, amount: Number.parseFloat(e.target.value) || 0 },
+                      })
+                    }
+                    required
+                  />
+                </div>
+              )}
             </div>
 
             {/* Certificate Image */}
             <div>
-              <label className="block text-sm font-medium mb-2">Update Certificate Image (Max 750KB)</label>
+              <label className="block text-sm font-medium mb-2">Update Contract Image (Max 750KB)</label>
               {formData.certificateURL && !certificate && (
                 <p className="text-sm text-green-600 mb-2">✓ Current certificate uploaded</p>
               )}
